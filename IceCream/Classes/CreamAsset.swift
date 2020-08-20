@@ -174,7 +174,11 @@ public class CreamAsset: Object {
                                     shouldOverwrite: shouldOverwrite,
                                     fileExtension: fileExtension)
         if shouldOverwrite {
-            try? FileManager.default.removeItem(at: creamAsset.filePath)
+            do {
+                try FileManager.default.removeItem(at: creamAsset.filePath)
+            } catch {
+                // Os.log remove item failed error here
+            }
         }
         if !FileManager.default.fileExists(atPath: creamAsset.filePath.path) {
             do {
@@ -231,5 +235,4 @@ extension CreamAsset {
         let needToDeleteCacheFiles = creamAssetFilesPaths().filter { $0.contains(id) }
         excecuteDeletions(in: needToDeleteCacheFiles)
     }
-
 }

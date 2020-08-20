@@ -54,9 +54,11 @@ final class PrivateDatabaseManager: DatabaseManager {
                     self.databaseChangeToken = nil
                     self.fetchChangesInDatabase(callback)
                 default:
+                    callback?(error)
                     return
                 }
             default:
+                callback?(error)
                 return
             }
         }
@@ -183,11 +185,10 @@ final class PrivateDatabaseManager: DatabaseManager {
             }
         }
         
-        changesOp.fetchRecordZoneChangesCompletionBlock = { error in
+        changesOp.fetchRecordZoneChangesCompletionBlock = { [weak self] error in
+            self?.database.add(changesOp)
             callback?(error)
         }
-        
-        database.add(changesOp)
     }
 }
 
