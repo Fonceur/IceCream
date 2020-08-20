@@ -17,28 +17,25 @@ public final class SyncEngine {
     
     private let databaseManager: DatabaseManager
     
-    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default(), completionHandler: ((Error?) -> Void)? = nil) {
-        print("IceCream convenience init")
+    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default()) {
         switch databaseScope {
         case .private:
             let privateDatabaseManager = PrivateDatabaseManager(objects: objects, container: container)
-            self.init(databaseManager: privateDatabaseManager, completionHandler: completionHandler)
+            self.init(databaseManager: privateDatabaseManager)
         case .public:
             let publicDatabaseManager = PublicDatabaseManager(objects: objects, container: container)
-            self.init(databaseManager: publicDatabaseManager, completionHandler: completionHandler)
+            self.init(databaseManager: publicDatabaseManager)
         default:
             fatalError("Not supported yet")
         }
     }
     
-    private init(databaseManager: DatabaseManager, completionHandler: ((Error?) -> Void)?) {
-        print("IceCream private init")
+    private init(databaseManager: DatabaseManager) {
         self.databaseManager = databaseManager
-        setup(completionHandler)
+        setup()
     }
     
-    private func setup(_ completionHandler: ((Error?) -> Void)?) {
-        print("IceCream Setup")
+    private func setup() {
         databaseManager.prepare()
         databaseManager.container.accountStatus { [weak self] (status, error) in
             guard let self = self else { return }
@@ -46,23 +43,21 @@ public final class SyncEngine {
             case .available:
                 self.databaseManager.registerLocalDatabase()
                 self.databaseManager.createCustomZonesIfAllowed()
-                self.databaseManager.fetchChangesInDatabase(completionHandler)
+                self.databaseManager.fetchChangesInDatabase(nil)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .noAccount, .restricted:
                 guard self.databaseManager is PublicDatabaseManager else { break }
-                self.databaseManager.fetchChangesInDatabase(completionHandler)
+                self.databaseManager.fetchChangesInDatabase(nil)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .couldNotDetermine:
-                completionHandler?(error)
                 break
             @unknown default:
-                completionHandler?(error)
                 break
             }
         }
