@@ -27,6 +27,7 @@ final class PrivateDatabaseManager: DatabaseManager {
     }
     
     func fetchChangesInDatabase(_ callback: ((Error?) -> Void)?) {
+        print("IceCream fetchChangesInDatabase")
         let changesOperation = CKFetchDatabaseChangesOperation(previousServerChangeToken: databaseChangeToken)
         
         /// Only update the changeToken when fetch process completes
@@ -40,6 +41,7 @@ final class PrivateDatabaseManager: DatabaseManager {
             guard let self = self else { return }
             switch ErrorHandler.shared.resultType(with: error) {
             case .success:
+                print("IceCream fetchChangesInDatabase: success")
                 self.databaseChangeToken = newToken
                 // Fetch the changes in zone level
                 self.fetchChangesInZones(callback)
@@ -137,6 +139,7 @@ final class PrivateDatabaseManager: DatabaseManager {
     }
     
     private func fetchChangesInZones(_ callback: ((Error?) -> Void)? = nil) {
+        print("IceCream fetchChangesInZones")
         let changesOp = CKFetchRecordZoneChangesOperation(recordZoneIDs: zoneIds, optionsByRecordZoneID: zoneIdOptions)
         changesOp.fetchAllChanges = true
         
@@ -186,10 +189,12 @@ final class PrivateDatabaseManager: DatabaseManager {
         }
         
         changesOp.fetchRecordZoneChangesCompletionBlock = { error in
+            print("IceCream fetchChangesInZones: completion")
             callback?(error)
         }
         
         database.add(changesOp)
+        print("IceCream fetchChangesInZones: done")
     }
 }
 

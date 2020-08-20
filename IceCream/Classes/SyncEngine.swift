@@ -18,6 +18,7 @@ public final class SyncEngine {
     private let databaseManager: DatabaseManager
     
     public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default(), completionHandler: ((Error?) -> Void)? = nil) {
+        print("IceCream convenience init")
         switch databaseScope {
         case .private:
             let privateDatabaseManager = PrivateDatabaseManager(objects: objects, container: container)
@@ -31,11 +32,13 @@ public final class SyncEngine {
     }
     
     private init(databaseManager: DatabaseManager, completionHandler: ((Error?) -> Void)?) {
+        print("IceCream private init")
         self.databaseManager = databaseManager
         setup(completionHandler)
     }
     
     private func setup(_ completionHandler: ((Error?) -> Void)?) {
+        print("IceCream Setup")
         databaseManager.prepare()
         databaseManager.container.accountStatus { [weak self] (status, error) in
             guard let self = self else { return }
