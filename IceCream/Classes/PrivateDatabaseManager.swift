@@ -56,11 +56,9 @@ final class PrivateDatabaseManager: DatabaseManager {
                     self.databaseChangeToken = nil
                     self.fetchChangesInDatabase(callback)
                 default:
-                    callback?(error)
                     return
                 }
             default:
-                callback?(error)
                 return
             }
         }
