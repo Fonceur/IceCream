@@ -185,10 +185,11 @@ final class PrivateDatabaseManager: DatabaseManager {
             }
         }
         
-        changesOp.fetchRecordZoneChangesCompletionBlock = { [weak self] error in
-            self?.database.add(changesOp)
+        changesOp.fetchRecordZoneChangesCompletionBlock = { error in
             callback?(error)
         }
+        
+        database.add(changesOp)
     }
 }
 
