@@ -86,6 +86,7 @@ final class PublicDatabaseManager: DatabaseManager {
                     self.excuteQueryOperation(queryOperation: queryOperation, on: syncObject, callback: callback)
                 })
             default:
+                callback?(error)
                 break
             }
         }

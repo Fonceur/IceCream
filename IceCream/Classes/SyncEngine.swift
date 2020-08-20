@@ -17,25 +17,25 @@ public final class SyncEngine {
     
     private let databaseManager: DatabaseManager
     
-    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default()) {
+    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default(), completionHandler: ((Error?) -> Void)? = nil) {
         switch databaseScope {
         case .private:
             let privateDatabaseManager = PrivateDatabaseManager(objects: objects, container: container)
-            self.init(databaseManager: privateDatabaseManager)
+            self.init(databaseManager: privateDatabaseManager, completionHandler: completionHandler)
         case .public:
             let publicDatabaseManager = PublicDatabaseManager(objects: objects, container: container)
-            self.init(databaseManager: publicDatabaseManager)
+            self.init(databaseManager: publicDatabaseManager, completionHandler: completionHandler)
         default:
             fatalError("Not supported yet")
         }
     }
     
-    private init(databaseManager: DatabaseManager) {
+    private init(databaseManager: DatabaseManager, completionHandler: ((Error?) -> Void)?) {
         self.databaseManager = databaseManager
-        setup()
+        setup(completionHandler)
     }
     
-    private func setup() {
+    private func setup(_ completionHandler: ((Error?) -> Void)?) {
         databaseManager.prepare()
         databaseManager.container.accountStatus { [weak self] (status, error) in
             guard let self = self else { return }
@@ -43,14 +43,14 @@ public final class SyncEngine {
             case .available:
                 self.databaseManager.registerLocalDatabase()
                 self.databaseManager.createCustomZonesIfAllowed()
-                self.databaseManager.fetchChangesInDatabase(nil)
+                self.databaseManager.fetchChangesInDatabase(completionHandler)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .noAccount, .restricted:
                 guard self.databaseManager is PublicDatabaseManager else { break }
-                self.databaseManager.fetchChangesInDatabase(nil)
+                self.databaseManager.fetchChangesInDatabase(completionHandler)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
                 self.databaseManager.startObservingTermination()
@@ -62,7 +62,6 @@ public final class SyncEngine {
             }
         }
     }
-    
 }
 
 // MARK: Public Method
@@ -80,7 +79,6 @@ extension SyncEngine {
     public func pushAll() {
         databaseManager.syncObjects.forEach { $0.pushLocalObjectsToCloudKit() }
     }
-    
 }
 
 public enum Notifications: String, NotificationName {
