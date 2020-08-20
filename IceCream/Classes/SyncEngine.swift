@@ -56,8 +56,10 @@ public final class SyncEngine {
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .couldNotDetermine:
+                completionHandler?(error)
                 break
             @unknown default:
+                completionHandler?(error)
                 break
             }
         }
