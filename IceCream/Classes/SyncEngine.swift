@@ -38,7 +38,11 @@ public final class SyncEngine {
     private func setup(completionHandler: ((Error?) -> Void)?) {
         databaseManager.prepare()
         databaseManager.container.accountStatus { [weak self] (status, error) in
-            guard let self = self else { return }
+            guard let self = self else {
+                completionHandler?(error)
+                return
+            }
+            
             switch status {
             case .available:
                 self.databaseManager.registerLocalDatabase()
@@ -49,7 +53,10 @@ public final class SyncEngine {
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .noAccount, .restricted:
-                guard self.databaseManager is PublicDatabaseManager else { break }
+                guard self.databaseManager is PublicDatabaseManager else {
+                    completionHandler?(error)
+                    break
+                }
                 self.databaseManager.fetchChangesInDatabase(completionHandler)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
