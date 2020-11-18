@@ -82,6 +82,7 @@ public class CreamAsset: Object {
         guard let url = asset.fileURL else { return nil }
         let fileExtension = record.value(forKey: ASSET_EXTENSION) as? String
         let shouldOverwrite = record.value(forKey: ASSET_SHOULD_OVERWRITE) as? Bool
+        
         return CreamAsset.create(objectID: record.recordID.recordName,
                                  propName: propName,
                                  url: url,
@@ -99,10 +100,11 @@ public class CreamAsset: Object {
     ///   - data: The file data
     ///   - shouldOverwrite: Whether to try and save the file even if an existing file exists for the same object ID.
     /// - Returns: A CreamAsset if it was successful
-    public static func create(objectID: String, propName: String, data: Data, shouldOverwrite: Bool = true) -> CreamAsset? {
+    public static func create(objectID: String, propName: String, data: Data, shouldOverwrite: Bool = true, fileExtension: String? = nil) -> CreamAsset? {
         let creamAsset = CreamAsset(objectID: objectID,
                                     propName: propName,
-                                    shouldOverwrite: shouldOverwrite)
+                                    shouldOverwrite: shouldOverwrite,
+                                    fileExtension: fileExtension)
         do {
             try save(data: data, to: creamAsset.uniqueFileName, shouldOverwrite: shouldOverwrite)
             return creamAsset
@@ -120,11 +122,12 @@ public class CreamAsset: Object {
     ///   - data: The file data
     ///   - shouldOverwrite: Whether to try and save the file even if an existing file exists for the same object.
     /// - Returns: A CreamAsset if it was successful
-    public static func create(object: CKRecordConvertible, propName: String, data: Data, shouldOverwrite: Bool = true) -> CreamAsset? {
+    public static func create(object: CKRecordConvertible, propName: String, data: Data, shouldOverwrite: Bool = true, fileExtension: String? = nil) -> CreamAsset? {
         return create(objectID: object.recordID.recordName,
                       propName: propName,
                       data: data,
-                      shouldOverwrite: shouldOverwrite)
+                      shouldOverwrite: shouldOverwrite,
+                      fileExtension: fileExtension)
     }
 
     /// Creates a new CreamAsset for the given object with a URL
