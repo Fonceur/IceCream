@@ -46,7 +46,7 @@ public final class SyncEngine {
             switch status {
             case .available:
                 self.databaseManager.registerLocalDatabase()
-//                self.pushAll() // We probably need to push new tables initially...
+                self.pushAll() // We probably need to push new tables initially...
                 self.databaseManager.fetchChangesInDatabase(completionHandler)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
