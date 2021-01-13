@@ -16,6 +16,8 @@ protocol DatabaseManager: class {
     var container: CKContainer { get }
     
     var syncObjects: [Syncable] { get }
+
+    var zoneChangesToken: CKServerChangeToken? { get set }
     
     init(objects: [Syncable], container: CKContainer)
     

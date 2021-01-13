@@ -19,7 +19,24 @@ final class PublicDatabaseManager: DatabaseManager {
     let database: CKDatabase
     
     let syncObjects: [Syncable]
-    
+
+    public var zoneChangesToken: CKServerChangeToken? {
+        get {
+            /// For the very first time when launching, the token will be nil and the server will be giving everything on the Cloud to client
+            /// In other situation just get the unarchive the data object
+            guard let tokenData = UserDefaults.standard.object(forKey: IceCreamKey.zonePublicChangesTokenKey.value) as? Data else { return nil }
+            return NSKeyedUnarchiver.unarchiveObject(with: tokenData) as? CKServerChangeToken
+        }
+        set {
+            guard let n = newValue else {
+                UserDefaults.standard.removeObject(forKey: IceCreamKey.zonePublicChangesTokenKey.value)
+                return
+            }
+            let data = NSKeyedArchiver.archivedData(withRootObject: n)
+            UserDefaults.standard.set(data, forKey: IceCreamKey.zonePublicChangesTokenKey.value)
+        }
+    }
+
     init(objects: [Syncable], container: CKContainer) {
         self.syncObjects = objects
         self.container = container

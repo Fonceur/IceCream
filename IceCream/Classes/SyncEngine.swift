@@ -100,6 +100,7 @@ public enum IceCreamKey: String {
     /// Tokens
     case databaseChangesTokenKey
     case zoneChangesTokenKey
+    case zonePublicChangesTokenKey
     
     /// Flags
     case subscriptionIsLocallyCachedKey
