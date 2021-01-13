@@ -32,9 +32,7 @@ extension CKRecordConvertible where Self: Object {
     
     public static var zoneID: CKRecordZone.ID {
         switch Self.databaseScope {
-        case .private:
-            return CKRecordZone.ID(zoneName: "\(recordType)sZone", ownerName: CKCurrentUserDefaultName)
-        case .public:
+        case .private, .public:
             return CKRecordZone.default().zoneID
         default:
             fatalError("Shared Database is not supported now")

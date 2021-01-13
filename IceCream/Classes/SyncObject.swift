@@ -59,16 +59,6 @@ extension SyncObject: Syncable {
         }
     }
 
-    public var isCustomZoneCreated: Bool {
-        get {
-            guard let flag = UserDefaults.standard.object(forKey: T.className() + IceCreamKey.hasCustomZoneCreatedKey.value) as? Bool else { return false }
-            return flag
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: T.className() + IceCreamKey.hasCustomZoneCreatedKey.value)
-        }
-    }
-    
     public func add(record: CKRecord) {
         BackgroundWorker.shared.start {
             let realm = try! Realm(configuration: self.realmConfiguration)

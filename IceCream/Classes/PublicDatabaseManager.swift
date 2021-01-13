@@ -35,10 +35,6 @@ final class PublicDatabaseManager: DatabaseManager {
         }
     }
     
-    func createCustomZonesIfAllowed() {
-        
-    }
-    
     func createDatabaseSubscriptionIfHaveNot() {
         syncObjects.forEach { createSubscriptionInPublicDatabase(on: $0) }
     }

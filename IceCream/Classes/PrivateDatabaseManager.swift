@@ -66,36 +66,6 @@ final class PrivateDatabaseManager: DatabaseManager {
         database.add(changesOperation)
     }
     
-    func createCustomZonesIfAllowed() {
-        let zonesToCreate = syncObjects.filter { !$0.isCustomZoneCreated }.map { CKRecordZone(zoneID: $0.zoneID) }
-        guard zonesToCreate.count > 0 else { return }
-        
-        let modifyOp = CKModifyRecordZonesOperation(recordZonesToSave: zonesToCreate, recordZoneIDsToDelete: nil)
-        modifyOp.modifyRecordZonesCompletionBlock = { [weak self](_, _, error) in
-            guard let self = self else { return }
-            switch ErrorHandler.shared.resultType(with: error) {
-            case .success:
-                self.syncObjects.forEach { object in
-                    object.isCustomZoneCreated = true
-                    
-                    // As we register local database in the first step, we have to force push local objects which
-                    // have not been caught to CloudKit to make data in sync
-                    DispatchQueue.main.async {
-                        object.pushLocalObjectsToCloudKit()
-                    }
-                }
-            case .retry(let timeToWait, _):
-                ErrorHandler.shared.retryOperationIfPossible(retryAfter: timeToWait, block: {
-                    self.createCustomZonesIfAllowed()
-                })
-            default:
-                return
-            }
-        }
-        
-        database.add(modifyOp)
-    }
-    
     func createDatabaseSubscriptionIfHaveNot() {
         #if os(iOS) || os(tvOS) || os(macOS)
         guard !subscriptionIsLocallyCached else { return }
@@ -137,7 +107,7 @@ final class PrivateDatabaseManager: DatabaseManager {
     }
     
     private func fetchChangesInZones(_ callback: ((Error?) -> Void)? = nil) {
-        let changesOp = CKFetchRecordZoneChangesOperation(recordZoneIDs: zoneIds, optionsByRecordZoneID: zoneIdOptions)
+        let changesOp = CKFetchRecordZoneChangesOperation(recordZoneIDs: [CKRecordZone.default().zoneID], optionsByRecordZoneID: zoneIdOptions)
         changesOp.fetchAllChanges = true
         
         changesOp.recordZoneChangeTokensUpdatedBlock = { [weak self] zoneId, token, _ in
@@ -220,10 +190,6 @@ extension PrivateDatabaseManager {
         set {
             UserDefaults.standard.set(newValue, forKey: IceCreamKey.subscriptionIsLocallyCachedKey.value)
         }
-    }
-    
-    private var zoneIds: [CKRecordZone.ID] {
-        return syncObjects.map { $0.zoneID }
     }
     
     private var zoneIdOptions: [CKRecordZone.ID: CKFetchRecordZoneChangesOperation.ZoneOptions] {
