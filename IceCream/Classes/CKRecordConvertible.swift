@@ -39,43 +39,9 @@ extension CKRecordConvertible where Self: Object {
         }
     }
     
-    /// recordName : this is the unique identifier for the record, used to locate records on the database. We can create our own ID or leave it to CloudKit to generate a random UUID.
-    /// For more: https://medium.com/@guilhermerambo/synchronizing-data-with-cloudkit-94c6246a3fda
-    public var recordID: CKRecord.ID {
-        guard let sharedSchema = Self.sharedSchema() else {
-            fatalError("No schema settled. Go to Realm Community to seek more help.")
-        }
-        
-        guard let primaryKeyProperty = sharedSchema.primaryKeyProperty else {
-            fatalError("You should set a primary key on your Realm object")
-        }
-        
-        switch primaryKeyProperty.type {
-        case .string:
-            if let primaryValueString = self[primaryKeyProperty.name] as? String {
-                // For more: https://developer.apple.com/documentation/cloudkit/ckrecord/id/1500975-init
-                assert(primaryValueString.allSatisfy({ $0.isASCII }), "Primary value for CKRecord name must contain only ASCII characters")
-                assert(primaryValueString.count <= 255, "Primary value for CKRecord name must not exceed 255 characters")
-                assert(!primaryValueString.starts(with: "_"), "Primary value for CKRecord name must not start with an underscore")
-                return CKRecord.ID(recordName: primaryValueString, zoneID: Self.zoneID)
-            } else {
-                assertionFailure("\(primaryKeyProperty.name)'s value should be String type")
-            }
-        case .int:
-            if let primaryValueInt = self[primaryKeyProperty.name] as? Int {
-                return CKRecord.ID(recordName: "\(primaryValueInt)", zoneID: Self.zoneID)
-            } else {
-                assertionFailure("\(primaryKeyProperty.name)'s value should be Int type")
-            }
-        default:
-            assertionFailure("Primary key should be String or Int")
-        }
-        fatalError("Should have a reasonable recordID")
-    }
-    
     // Simultaneously init CKRecord with zoneID and recordID, thanks to this guy: https://stackoverflow.com/questions/45429133/how-to-initialize-ckrecord-with-both-zoneid-and-recordid
     public var record: CKRecord {
-        let r = CKRecord(recordType: Self.recordType, recordID: recordID)
+        let r = CKRecord(recordType: Self.recordType)
         let properties = objectSchema.properties
         for prop in properties {
             
@@ -149,5 +115,4 @@ extension CKRecordConvertible where Self: Object {
         }
         return r
     }
-    
 }
