@@ -140,13 +140,13 @@ final class PrivateDatabaseManager: DatabaseManager {
             syncObject.add(record: record)
         }
         
-        changesOp.recordWithIDWasDeletedBlock = { [weak self] recordId, _ in
+        changesOp.recordWithIDWasDeletedBlock = { [weak self] recordId, _ in //TODO: Won't work, it just grab the first syncObject
             guard let self = self else { return }
             guard let syncObject = self.syncObjects.first(where: { $0.zoneID == recordId.zoneID }) else { return }
             syncObject.delete(recordID: recordId)
         }
         
-        changesOp.recordZoneFetchCompletionBlock = { [weak self](zoneId ,token, _, _, error) in
+        changesOp.recordZoneFetchCompletionBlock = { [weak self](zoneId, token, _, _, error) in
             guard let self = self else { return }
             switch ErrorHandler.shared.resultType(with: error) {
             case .success:
