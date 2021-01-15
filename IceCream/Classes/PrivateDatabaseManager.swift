@@ -14,11 +14,11 @@ import UIKit
 import CloudKit
 
 final class PrivateDatabaseManager: DatabaseManager {
-    
     let container: CKContainer
     let database: CKDatabase
     
     let syncObjects: [Syncable]
+    let savePolicy: CKModifyRecordsOperation.RecordSavePolicy
 
     public var isCustomZoneCreated: Bool {
         get {
@@ -47,10 +47,11 @@ final class PrivateDatabaseManager: DatabaseManager {
         }
     }
 
-    public init(objects: [Syncable], container: CKContainer) {
+    public init(objects: [Syncable], container: CKContainer, savePolicy: CKModifyRecordsOperation.RecordSavePolicy) {
         self.syncObjects = objects
         self.container = container
         self.database = container.privateCloudDatabase
+        self.savePolicy = savePolicy
     }
     
     func fetchChangesInDatabase(_ callback: ((Error?) -> Void)?) {

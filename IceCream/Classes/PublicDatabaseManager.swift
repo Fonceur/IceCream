@@ -19,6 +19,7 @@ final class PublicDatabaseManager: DatabaseManager {
     let database: CKDatabase
     
     let syncObjects: [Syncable]
+    let savePolicy: CKModifyRecordsOperation.RecordSavePolicy
 
     public var isCustomZoneCreated: Bool {
         get {
@@ -47,10 +48,11 @@ final class PublicDatabaseManager: DatabaseManager {
         }
     }
 
-    init(objects: [Syncable], container: CKContainer) {
+    init(objects: [Syncable], container: CKContainer, savePolicy: CKModifyRecordsOperation.RecordSavePolicy) {
         self.syncObjects = objects
         self.container = container
         self.database = container.publicCloudDatabase
+        self.savePolicy = savePolicy
     }
     
     func fetchChangesInDatabase(_ callback: ((Error?) -> Void)?) {
