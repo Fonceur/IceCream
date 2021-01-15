@@ -18,6 +18,7 @@ protocol DatabaseManager: class {
     var syncObjects: [Syncable] { get }
 
     var zoneChangesToken: CKServerChangeToken? { get set }
+    var isCustomZoneCreated: Bool { get set }
     
     init(objects: [Syncable], container: CKContainer)
     
@@ -34,6 +35,7 @@ protocol DatabaseManager: class {
     /// The operation resumes! All works like a magic!
     func resumeLongLivedOperationIfPossible()
     
+    func createCustomZonesIfAllowed()
     func startObservingRemoteChanges()
     func startObservingTermination()
     func createDatabaseSubscriptionIfHaveNot()

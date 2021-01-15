@@ -20,6 +20,16 @@ final class PrivateDatabaseManager: DatabaseManager {
     
     let syncObjects: [Syncable]
 
+    public var isCustomZoneCreated: Bool {
+        get {
+            guard let flag = UserDefaults.standard.object(forKey: IceCreamKey.hasCustomZoneCreatedKey.value) as? Bool else { return false }
+            return flag
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IceCreamKey.hasCustomZoneCreatedKey.value)
+        }
+    }
+
     public var zoneChangesToken: CKServerChangeToken? {
         get {
             /// For the very first time when launching, the token will be nil and the server will be giving everything on the Cloud to client
@@ -83,6 +93,39 @@ final class PrivateDatabaseManager: DatabaseManager {
         database.add(changesOperation)
     }
     
+    func createCustomZonesIfAllowed() {
+        if isCustomZoneCreated {
+            return
+        }
+
+        let zonesToCreate = [CKRecordZone(zoneID: zoneIds[0])]
+
+        let modifyOp = CKModifyRecordZonesOperation(recordZonesToSave: zonesToCreate, recordZoneIDsToDelete: nil)
+        modifyOp.modifyRecordZonesCompletionBlock = { [weak self](_, _, error) in
+            guard let self = self else { return }
+            switch ErrorHandler.shared.resultType(with: error) {
+            case .success:
+                self.isCustomZoneCreated = true
+                
+                self.syncObjects.forEach { object in
+                    // As we register local database in the first step, we have to force push local objects which
+                    // have not been caught to CloudKit to make data in sync
+                    DispatchQueue.main.async {
+                        object.pushLocalObjectsToCloudKit()
+                    }
+                }
+            case .retry(let timeToWait, _):
+                ErrorHandler.shared.retryOperationIfPossible(retryAfter: timeToWait, block: {
+                    self.createCustomZonesIfAllowed()
+                })
+            default:
+                return
+            }
+        }
+
+        database.add(modifyOp)
+    }
+
     func createDatabaseSubscriptionIfHaveNot() {
         #if os(iOS) || os(tvOS) || os(macOS)
         guard !subscriptionIsLocallyCached else { return }
@@ -124,7 +167,7 @@ final class PrivateDatabaseManager: DatabaseManager {
     }
     
     private func fetchChangesInZones(_ callback: ((Error?) -> Void)? = nil) {
-        let changesOp = CKFetchRecordZoneChangesOperation(recordZoneIDs: [CKRecordZone.default().zoneID], optionsByRecordZoneID: zoneIdOptions)
+        let changesOp = CKFetchRecordZoneChangesOperation(recordZoneIDs: zoneIds, optionsByRecordZoneID: zoneIdOptions)
         changesOp.fetchAllChanges = true
         
         changesOp.recordZoneChangeTokensUpdatedBlock = { [weak self] zoneId, token, _ in
@@ -205,6 +248,10 @@ extension PrivateDatabaseManager {
         }
     }
     
+    private var zoneIds: [CKRecordZone.ID] {
+        return syncObjects.map { $0.zoneID } // TODO: It's all the same zoneID, so maybe just the first or a value somewhere else...
+    }
+
     private var zoneIdOptions: [CKRecordZone.ID: CKFetchRecordZoneChangesOperation.ZoneOptions] {
         return syncObjects.reduce([CKRecordZone.ID: CKFetchRecordZoneChangesOperation.ZoneOptions]()) { (dict, syncObject) -> [CKRecordZone.ID: CKFetchRecordZoneChangesOperation.ZoneOptions] in
             var dict = dict

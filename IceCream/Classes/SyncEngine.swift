@@ -46,7 +46,7 @@ public final class SyncEngine {
             switch status {
             case .available:
                 self.databaseManager.registerLocalDatabase()
-//                self.pushAll() // We probably need to push new tables initially...
+                self.databaseManager.createCustomZonesIfAllowed()
                 self.databaseManager.fetchChangesInDatabase(completionHandler)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
                 self.databaseManager.startObservingRemoteChanges()
@@ -102,7 +102,9 @@ public enum IceCreamKey: String {
     
     /// Flags
     case subscriptionIsLocallyCachedKey
-    
+    case hasCustomZoneCreatedKey
+    case hasCustomPublicZoneCreatedKey
+
     var value: String {
         return "icecream.keys." + rawValue
     }

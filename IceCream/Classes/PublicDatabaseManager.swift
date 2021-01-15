@@ -20,6 +20,16 @@ final class PublicDatabaseManager: DatabaseManager {
     
     let syncObjects: [Syncable]
 
+    public var isCustomZoneCreated: Bool {
+        get {
+            guard let flag = UserDefaults.standard.object(forKey: IceCreamKey.hasCustomPublicZoneCreatedKey.value) as? Bool else { return false }
+            return flag
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IceCreamKey.hasCustomPublicZoneCreatedKey.value)
+        }
+    }
+
     public var zoneChangesToken: CKServerChangeToken? {
         get {
             /// For the very first time when launching, the token will be nil and the server will be giving everything on the Cloud to client
@@ -50,6 +60,10 @@ final class PublicDatabaseManager: DatabaseManager {
             let queryOperation = CKQueryOperation(query: query)
             self?.excuteQueryOperation(queryOperation: queryOperation, on: syncObject, callback: callback)
         }
+    }
+    
+    func createCustomZonesIfAllowed() {
+        
     }
     
     func createDatabaseSubscriptionIfHaveNot() {
