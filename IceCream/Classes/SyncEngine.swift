@@ -71,7 +71,6 @@ public final class SyncEngine {
             }
         }
     }
-    
 }
 
 // MARK: Public Method
@@ -89,7 +88,6 @@ extension SyncEngine {
     public func pushAll() {
         databaseManager.syncObjects.forEach { $0.pushLocalObjectsToCloudKit() }
     }
-    
 }
 
 public enum Notifications: String, NotificationName {
