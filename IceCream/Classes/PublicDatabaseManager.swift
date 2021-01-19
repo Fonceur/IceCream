@@ -19,11 +19,40 @@ final class PublicDatabaseManager: DatabaseManager {
     let database: CKDatabase
     
     let syncObjects: [Syncable]
-    
-    init(objects: [Syncable], container: CKContainer) {
+    let savePolicy: CKModifyRecordsOperation.RecordSavePolicy
+
+    public var isCustomZoneCreated: Bool {
+        get {
+            guard let flag = UserDefaults.standard.object(forKey: IceCreamKey.hasCustomPublicZoneCreatedKey.value) as? Bool else { return false }
+            return flag
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: IceCreamKey.hasCustomPublicZoneCreatedKey.value)
+        }
+    }
+
+    public var zoneChangesToken: CKServerChangeToken? {
+        get {
+            /// For the very first time when launching, the token will be nil and the server will be giving everything on the Cloud to client
+            /// In other situation just get the unarchive the data object
+            guard let tokenData = UserDefaults.standard.object(forKey: IceCreamKey.zonePublicChangesTokenKey.value) as? Data else { return nil }
+            return NSKeyedUnarchiver.unarchiveObject(with: tokenData) as? CKServerChangeToken
+        }
+        set {
+            guard let n = newValue else {
+                UserDefaults.standard.removeObject(forKey: IceCreamKey.zonePublicChangesTokenKey.value)
+                return
+            }
+            let data = NSKeyedArchiver.archivedData(withRootObject: n)
+            UserDefaults.standard.set(data, forKey: IceCreamKey.zonePublicChangesTokenKey.value)
+        }
+    }
+
+    init(objects: [Syncable], container: CKContainer, savePolicy: CKModifyRecordsOperation.RecordSavePolicy) {
         self.syncObjects = objects
         self.container = container
         self.database = container.publicCloudDatabase
+        self.savePolicy = savePolicy
     }
     
     func fetchChangesInDatabase(_ callback: ((Error?) -> Void)?) {

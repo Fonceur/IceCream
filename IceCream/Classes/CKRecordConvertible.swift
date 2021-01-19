@@ -33,7 +33,7 @@ extension CKRecordConvertible where Self: Object {
     public static var zoneID: CKRecordZone.ID {
         switch Self.databaseScope {
         case .private:
-            return CKRecordZone.ID(zoneName: "\(recordType)sZone", ownerName: CKCurrentUserDefaultName)
+            return CKRecordZone.ID(zoneName: "IceCreamZone", ownerName: CKCurrentUserDefaultName)
         case .public:
             return CKRecordZone.default().zoneID
         default:
@@ -151,5 +151,4 @@ extension CKRecordConvertible where Self: Object {
         }
         return r
     }
-    
 }

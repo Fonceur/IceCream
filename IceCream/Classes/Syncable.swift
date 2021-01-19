@@ -17,10 +17,6 @@ public protocol Syncable: class {
     var recordType: String { get }
     var zoneID: CKRecordZone.ID { get }
     
-    /// Local storage
-    var zoneChangesToken: CKServerChangeToken? { get set }
-    var isCustomZoneCreated: Bool { get set }
-    
     /// Realm Database related
     func registerLocalDatabase()
     func cleanUp()

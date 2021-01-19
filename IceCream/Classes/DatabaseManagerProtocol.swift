@@ -14,10 +14,13 @@ protocol DatabaseManager: class {
     
     /// An encapsulation of content associated with an app.
     var container: CKContainer { get }
-    
+    var savePolicy: CKModifyRecordsOperation.RecordSavePolicy { get }
     var syncObjects: [Syncable] { get }
-    
-    init(objects: [Syncable], container: CKContainer)
+
+    var zoneChangesToken: CKServerChangeToken? { get set }
+    var isCustomZoneCreated: Bool { get set }
+
+    init(objects: [Syncable], container: CKContainer, savePolicy: CKModifyRecordsOperation.RecordSavePolicy)
     
     func prepare()
     
@@ -95,7 +98,7 @@ extension DatabaseManager {
         // We use .changedKeys savePolicy to do unlocked changes here cause my app is contentious and off-line first
         // Apple suggests using .ifServerRecordUnchanged save policy
         // For more, see Advanced CloudKit(https://developer.apple.com/videos/play/wwdc2014/231/)
-        modifyOpe.savePolicy = .changedKeys
+        modifyOpe.savePolicy = savePolicy
         
         // To avoid CKError.partialFailure, make the operation atomic (if one record fails to get modified, they all fail)
         // If you want to handle partial failures, set .isAtomic to false and implement CKOperationResultType .fail(reason: .partialFailure) where appropriate

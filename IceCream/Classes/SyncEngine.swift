@@ -17,13 +17,13 @@ public final class SyncEngine {
     
     private let databaseManager: DatabaseManager
     
-    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default(), completionHandler: ((Error?) -> Void)? = nil) {
+    public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default(), completionHandler: ((Error?) -> Void)? = nil, savePolicy: CKModifyRecordsOperation.RecordSavePolicy = .changedKeys) {
         switch databaseScope {
         case .private:
-            let privateDatabaseManager = PrivateDatabaseManager(objects: objects, container: container)
+            let privateDatabaseManager = PrivateDatabaseManager(objects: objects, container: container, savePolicy: savePolicy)
             self.init(databaseManager: privateDatabaseManager, completionHandler: completionHandler)
         case .public:
-            let publicDatabaseManager = PublicDatabaseManager(objects: objects, container: container)
+            let publicDatabaseManager = PublicDatabaseManager(objects: objects, container: container, savePolicy: savePolicy)
             self.init(databaseManager: publicDatabaseManager, completionHandler: completionHandler)
         default:
             fatalError("Not supported yet")
@@ -71,7 +71,6 @@ public final class SyncEngine {
             }
         }
     }
-    
 }
 
 // MARK: Public Method
@@ -89,7 +88,6 @@ extension SyncEngine {
     public func pushAll() {
         databaseManager.syncObjects.forEach { $0.pushLocalObjectsToCloudKit() }
     }
-    
 }
 
 public enum Notifications: String, NotificationName {
@@ -100,11 +98,13 @@ public enum IceCreamKey: String {
     /// Tokens
     case databaseChangesTokenKey
     case zoneChangesTokenKey
+    case zonePublicChangesTokenKey
     
     /// Flags
     case subscriptionIsLocallyCachedKey
     case hasCustomZoneCreatedKey
-    
+    case hasCustomPublicZoneCreatedKey
+
     var value: String {
         return "icecream.keys." + rawValue
     }
